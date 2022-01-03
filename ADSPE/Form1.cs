@@ -19,9 +19,6 @@ namespace ADSPE
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            Problem problem = new Problem();
-            Chromosome chromosome = new Chromosome();
-            problem.GenerateSimulatorConfigFile(chromosome);
         }
     }
 }

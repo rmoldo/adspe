@@ -14,12 +14,12 @@ namespace ADSPE
         public int memoryArchitecture;
         public int branchMisspeculation;
         public double speculativeAccuracy;
-        public double systemMemoryLatency;
+        public int systemMemoryLatency;
         public Cache l1Data;
         public Cache l1Code;
         public Cache l2;
 
-        public Memory(int memoryArchitecture, int branchMisspeculation, double speculativeAccuracy, double systemMemoryLatency, Cache l1Data, Cache l1Code, Cache l2)
+        public Memory(int memoryArchitecture, int branchMisspeculation, double speculativeAccuracy, int systemMemoryLatency, Cache l1Data, Cache l1Code, Cache l2)
         {
             this.memoryArchitecture = memoryArchitecture;
             this.speculativeAccuracy = speculativeAccuracy;
