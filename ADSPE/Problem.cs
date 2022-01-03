@@ -9,6 +9,8 @@ using JMetalCSharp.Utils.Wrapper;
 using JMetalCSharp.Utils;
 using JMetalCSharp.Encoding.SolutionType;
 using System.Xml;
+using System.IO;
+using System.Diagnostics;
 
 namespace ADSPE
 {
@@ -16,94 +18,148 @@ namespace ADSPE
     {
 
         static String benchmark;
+        static String outputFilePath = "";
         static int outputNumber = 1;
 
-        public Problem() { }
-        /*
-        public Problem(string solutionType)
-            : this(solutionType, 30)
+        public Problem(string bench)
+            : this(25, bench)
         {
-
+            benchmark = bench;
         }
-
        
-        public Problem(string solutionType, int numberOfVariables)
+        public Problem(int numberOfVariables, String bench)
         {
             NumberOfVariables = numberOfVariables;
             NumberOfObjectives = 2;
             NumberOfConstraints = 0;
-            ProblemName = "Problm";
+            ProblemName = "Problem";
 
             UpperLimit = new double[NumberOfVariables];
             LowerLimit = new double[NumberOfVariables];
 
             for (int i = 0; i < NumberOfVariables; i++)
             {
-                LowerLimit[i] = 0;
-                UpperLimit[i] = 1;
+                switch(i)
+                {
+                    // superscalar  1-16
+                    case 0:
+                        LowerLimit[i] = 1;
+                        UpperLimit[i] = 16;
+                        break;
+                    // rename
+                    case 1:
+                        LowerLimit[i] = 1;
+                        UpperLimit[i] = 512;
+                        break;
+                    // reorderEntries
+                    case 2:
+                        LowerLimit[i] = 1;
+                        UpperLimit[i] = 512;
+                        break;
+                    // reservationArchitecture:  centralized, hybrid
+                    case 3:
+                        LowerLimit[i] = 0;
+                        UpperLimit[i] = 1;
+                        break;
+                    // reservation
+                    case 4:
+                        LowerLimit[i] = 1;
+                        UpperLimit[i] = 8;
+                        break;
+                    // branchMisspeculation
+                    case 5:
+                        LowerLimit[i] = 0;
+                        UpperLimit[i] = 1;
+                        break;
+                    // speculativeAccuracy
+                    case 6:
+                        LowerLimit[i] = 0.0;
+                        UpperLimit[i] = 100.0;
+                        break;
+                    // separateDecodeAndDispatch
+                    case 7:
+                        LowerLimit[i] = 0;
+                        UpperLimit[i] = 1;
+                        break;
+                    // l1Code.cacheHitrate
+                    case 18:
+                        LowerLimit[i] = 0.0;
+                        UpperLimit[i] = 100.0;
+                        break;
+                    // l1Code.cacheLatency
+                    case 19:
+                        LowerLimit[i] = 0;
+                        UpperLimit[i] = 100;
+                        break;
+                    // l1Data.cacheHitrate
+                    case 20:
+                        LowerLimit[i] = 0.0;
+                        UpperLimit[i] = 100.0;
+                        break;
+                    // l1Data.cacheLatency
+                    case 21:
+                        LowerLimit[i] = 0;
+                        UpperLimit[i] = 100;
+                        break;
+                    // l2.cacheHitrate
+                    case 22:
+                        LowerLimit[i] = 0.0;
+                        UpperLimit[i] = 100.0;
+                        break;
+                    // l2.cacheLatency
+                    case 23:
+                        LowerLimit[i] = 0;
+                        UpperLimit[i] = 100;
+                        break;
+                    // systemMemoryLatency
+                    case 24:
+                        LowerLimit[i] = 0;
+                        UpperLimit[i] = 10000;
+                        break;
+                    //  iadd, imul, idiv, fpadd, fpmul, fpdiv, fpsqrt, branch, load, store
+                    default:
+                        LowerLimit[i] = 1;
+                        UpperLimit[i] = 8;
+                        break;
+                }
             }
 
-            if (solutionType == "BinaryReal")
-            {
-                SolutionType = new BinaryRealSolutionType(this);
-            }
-            else if (solutionType == "Real")
-            {
-                SolutionType = new RealSolutionType(this);
-            }
-            else if (solutionType == "ArrayReal")
-            {
-                SolutionType = new ArrayRealSolutionType(this);
-            }
-            else
-            {
-                Console.WriteLine("Error: solution type " + solutionType + " is invalid");
-                Logger.Log.Error("Solution type " + solutionType + " is invalid");
-                return;
-            }
+            
+            SolutionType = new ArrayRealSolutionType(this);
         }
 
-        */
         public override void Evaluate(Solution solution)
         {
             XReal x = new XReal(solution);
 
-            double[] f = new double[NumberOfObjectives];
-            f[0] = x.GetValue(0);
-            double g = this.EvalG(x);
-            double h = this.EvalH(f[0], g);
-            f[1] = h * g;
+            double[] configuration = new double[NumberOfVariables];
+            double[] objectives = new double[NumberOfObjectives];
 
-            solution.Objective[0] = f[0];
-            solution.Objective[1] = f[1];
-        }
-
-        
-        private double EvalG(XReal x)
-        {
-            double g = 0;
-            double tmp;
-            for (int i = 1; i < x.GetNumberOfDecisionVariables(); i++)
+            for (int i = 0; i < NumberOfVariables; ++i)
             {
-                tmp = x.GetValue(i);
-                g += tmp;
+                configuration[i] = x.GetValue(i);
             }
-            double constant = (9.0 / (NumberOfVariables - 1));
-            g = constant * g;
-            g = g + 1;
-            return g;
-        }
 
-        private double EvalH(double f, double g)
-        {
-            double h = 0;
-            h = 1 - Math.Sqrt(f / g);
-            return h;
+            Chromosome chromosome = new Chromosome();
+            
+            // Write PSATSim custom configuration  
+            XmlWriter writer = GenerateSimulatorConfigFile(chromosome);
+            writer.Close();
+
+            StartSimulator();
+
+            // Get cpi and energy from output file
+            double cpi = 1/ getIPC();
+            double energy = getEnergy();
+
+            // Set new objectives
+            solution.Objective[0] = cpi;
+            solution.Objective[1] = energy;
         }
 
         public XmlWriter GenerateSimulatorConfigFile(Chromosome chromosome)
         {
-            using (XmlWriter writer = XmlWriter.Create(@"PSATSim/config.xml"))
+            using (XmlWriter writer = XmlWriter.Create(@"PSATSim\config.xml"))
             {
                 writer.WriteStartElement("psatsim");
                 writer.WriteStartElement("config");
@@ -125,7 +181,9 @@ namespace ADSPE
                 writer.WriteAttributeString("seed", "0");
                 writer.WriteAttributeString("trace", benchmark);
 
-                writer.WriteAttributeString("output", "Simulation_Output/output_" + benchmark  + "_" + outputNumber + ".xml");
+                outputFilePath = "Simulation_Output/output_" + benchmark + "_" + outputNumber + ".xml";
+
+                writer.WriteAttributeString("output", outputFilePath);
                 writer.WriteAttributeString("vdd", "2.2");
                 writer.WriteAttributeString("frequency", "600");
                 writer.WriteEndElement();
@@ -179,6 +237,102 @@ namespace ADSPE
                 writer.Close();
                 return writer;
             }
+        }
+
+        private double getEnergy()
+        {
+            string path = Directory.GetCurrentDirectory() + "/PSATsim/" + outputFilePath;
+            long length = new System.IO.FileInfo(path).Length;
+
+            if (length != 0)
+            {
+                XmlDocument doc = new XmlDocument();
+                doc.Load(path);
+                XmlNodeList nodes = doc.DocumentElement.GetElementsByTagName("general");
+                return Convert.ToDouble(nodes[0].Attributes.GetNamedItem("energy").InnerText);
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        private double getIPC()
+        {
+            string path = Directory.GetCurrentDirectory() + "/PSATsim/" + outputFilePath;
+            long length = new System.IO.FileInfo(path).Length;
+
+            if (length != 0)
+            {
+                XmlDocument doc = new XmlDocument();
+                doc.Load(path);
+                XmlNodeList nodes = doc.DocumentElement.GetElementsByTagName("general");
+                return Convert.ToDouble(nodes[0].Attributes.GetNamedItem("ipc").InnerText);
+            }
+            else
+            {
+                return 0;
+            }
+        }
+
+        public Chromosome CreateChromosomeFromSolution(double[] solution)
+        {
+            Chromosome chromosome = new Chromosome();
+
+            // General
+            chromosome.general.superscalarFactor = Convert.ToInt32(solution[0]);
+            chromosome.general.renameEntries = Convert.ToInt32(solution[1]);
+            chromosome.general.reorderEntries = Convert.ToInt32(solution[2]);
+            chromosome.execution.reservationArchitecture = Convert.ToInt32(solution[3]);
+            chromosome.execution.reservation = Convert.ToInt32(solution[4]);
+            chromosome.memory.branchMisspeculation = Convert.ToInt32(solution[5]);
+            chromosome.memory.speculativeAccuracy = solution[6];
+            chromosome.general.separateDecodeAndDispatch = Convert.ToInt32(solution[7]);
+
+            // Execution
+            chromosome.execution.iaddEU = Convert.ToInt32(solution[8]);
+            chromosome.execution.imulEU = Convert.ToInt32(solution[9]);
+            chromosome.execution.idivEU = Convert.ToInt32(solution[10]);
+            chromosome.execution.fpaddEU = Convert.ToInt32(solution[11]);
+            chromosome.execution.fpmulEU = Convert.ToInt32(solution[12]);
+            chromosome.execution.fpdivEU = Convert.ToInt32(solution[13]);
+            chromosome.execution.fpsqrtEU = Convert.ToInt32(solution[14]);
+            chromosome.execution.branchEU = Convert.ToInt32(solution[15]);
+            chromosome.execution.loadEU = Convert.ToInt32(solution[16]);
+            chromosome.execution.storeEU = Convert.ToInt32(solution[17]);
+
+            // Memory
+            chromosome.memory.l1Code.cacheHitrate = solution[18];
+            chromosome.memory.l1Code.cacheLatency = Convert.ToInt32(solution[19]);
+            chromosome.memory.l1Data.cacheHitrate = solution[20];
+            chromosome.memory.l1Data.cacheLatency = Convert.ToInt32(solution[21]);
+            chromosome.memory.l2.cacheHitrate = solution[22];
+            chromosome.memory.l2.cacheHitrate = Convert.ToInt32(solution[23]);
+            chromosome.memory.systemMemoryLatency = Convert.ToInt32(solution[24]);
+
+            return chromosome;
+        }
+
+        private void StartSimulator()
+        {
+            Process process = new Process();
+            string path = Directory.GetCurrentDirectory() + @"\PSATSim";
+
+            var StartInfo = new System.Diagnostics.ProcessStartInfo
+            {
+                WorkingDirectory = path,
+                WindowStyle = System.Diagnostics.ProcessWindowStyle.Normal,
+                FileName = Directory.GetCurrentDirectory() + @"\PSATSim\psatsim_con.exe",
+                Arguments = "config.xml " + outputFilePath + " " + "-g",
+                RedirectStandardInput = true,
+                CreateNoWindow = true,
+                UseShellExecute = false
+            };
+
+            process.StartInfo = StartInfo;
+            process.Start();
+
+            process.WaitForExit();
         }
     }
 }
