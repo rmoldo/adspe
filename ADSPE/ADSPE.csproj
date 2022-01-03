@@ -63,7 +63,7 @@
     </Compile>
     <Compile Include="General.cs" />
     <Compile Include="Memory.cs" />
-    <Compile Include="Problm.cs" />
+    <Compile Include="Problem.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">

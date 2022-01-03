@@ -11,7 +11,7 @@ using JMetalCSharp.Encoding.SolutionType;
 
 namespace ADSPE
 {
-    class Problm : Problem
+    class Problem : JMetalCSharp.Core.Problem
     {
         #region Constructors
 
@@ -20,7 +20,7 @@ namespace ADSPE
         /// Creates a default instance of problem ZDT1 (30 decision variables)
         /// </summary>
         /// <param name="solutionType">The solution type must "Real", "BinaryReal, and "ArrayReal".</param>
-        public Problm(string solutionType)
+        public Problem(string solutionType)
             : this(solutionType, 30)
         {
 
@@ -31,7 +31,7 @@ namespace ADSPE
         /// </summary>
         /// <param name="solutionType">Number of variables.</param>
         /// <param name="numberOfVariables">The solution type must "Real", "BinaryReal, and "ArrayReal".</param>
-        public Problm(string solutionType, int numberOfVariables)
+        public Problem(string solutionType, int numberOfVariables)
         {
             NumberOfVariables = numberOfVariables;
             NumberOfObjectives = 2;
