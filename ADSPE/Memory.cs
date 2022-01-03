@@ -14,12 +14,12 @@ namespace ADSPE
         public int memoryArchitecture;
         public int branchMisspeculation;
         public double speculativeAccuracy;
-        public double systemMemoryLatency;
+        public int systemMemoryLatency;
         public Cache l1Data;
         public Cache l1Code;
         public Cache l2;
 
-        public Memory(int memoryArchitecture, int branchMisspeculation, double speculativeAccuracy, double systemMemoryLatency, Cache l1Data, Cache l1Code, Cache l2)
+        public Memory(int memoryArchitecture, int branchMisspeculation, double speculativeAccuracy, int systemMemoryLatency, Cache l1Data, Cache l1Code, Cache l2)
         {
             this.memoryArchitecture = memoryArchitecture;
             this.speculativeAccuracy = speculativeAccuracy;
@@ -40,7 +40,7 @@ namespace ADSPE
             Random random = new Random();
 
             memoryArchitecture = random.Next(0, 3);
-            branchMisspeculation = random.Next(0, 2) == 0 ? 0 : 1;
+            branchMisspeculation = random.Next(0, 2);
             speculativeAccuracy = random.NextDouble() * 100;
             systemMemoryLatency = random.Next(0, 10001);
         }
