@@ -33,7 +33,7 @@ namespace ADSPE
         {
             Random random = new Random();
 
-            reservationArchitecture = random.Next(0, 3); // 0: distributed, 1: centralised, 2: hybrid
+            reservationArchitecture = random.Next(0, 2); // 0: centralized, 1: hybrid; for whatever reason distributed does not work
             executionUnitArchitecture = random.Next(0, 3); // 0: standard, 1: simple, 2: complex
 
             reservation = random.Next(1, 9);

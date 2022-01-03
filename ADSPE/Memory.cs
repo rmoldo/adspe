@@ -40,7 +40,7 @@ namespace ADSPE
             Random random = new Random();
 
             memoryArchitecture = random.Next(0, 3);
-            branchMisspeculation = random.Next(0, 2) == 0 ? 0 : 1;
+            branchMisspeculation = random.Next(0, 2);
             speculativeAccuracy = random.NextDouble() * 100;
             systemMemoryLatency = random.Next(0, 10001);
         }
