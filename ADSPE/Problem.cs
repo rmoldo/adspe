@@ -16,7 +16,6 @@ namespace ADSPE
 {
     class Problem : JMetalCSharp.Core.Problem
     {
-
         static String benchmark;
         static String outputFilePath = "";
         static int outputNumber = 1;
@@ -181,7 +180,7 @@ namespace ADSPE
                 writer.WriteAttributeString("seed", "0");
                 writer.WriteAttributeString("trace", benchmark);
 
-                outputFilePath = "Simulation_Output/output_" + benchmark + "_" + outputNumber + ".xml";
+                outputFilePath = "Simulation_Output/output_" + outputNumber++ + ".xml";
 
                 writer.WriteAttributeString("output", outputFilePath);
                 writer.WriteAttributeString("vdd", "2.2");
@@ -313,7 +312,7 @@ namespace ADSPE
             return chromosome;
         }
 
-        private void StartSimulator()
+        public void StartSimulator()
         {
             Process process = new Process();
             string path = Directory.GetCurrentDirectory() + @"\PSATSim";
@@ -323,7 +322,7 @@ namespace ADSPE
                 WorkingDirectory = path,
                 WindowStyle = System.Diagnostics.ProcessWindowStyle.Normal,
                 FileName = Directory.GetCurrentDirectory() + @"\PSATSim\psatsim_con.exe",
-                Arguments = "config.xml " + outputFilePath + " " + "-g",
+                Arguments = "config.xml " + outputFilePath + " " + " -g",
                 RedirectStandardInput = true,
                 CreateNoWindow = true,
                 UseShellExecute = false
