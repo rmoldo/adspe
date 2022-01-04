@@ -14,15 +14,15 @@ namespace ADSPE
     public class GeneticAlgorithm
     {
         private int populationSize;
-        private int offspringSize;
+        private int generationSize;
         private double crossoverProbability;
         private String benchmarkPath;
         private String selectionType;
 
-        public GeneticAlgorithm(int populationSize, int offspringSize, double crossoverProbability, string benchmarkPath, string selectionType)
+        public GeneticAlgorithm(int populationSize, int generationSize, double crossoverProbability, string benchmarkPath, string selectionType)
         {
             this.populationSize = populationSize;
-            this.offspringSize = offspringSize;
+            this.generationSize = generationSize;
             this.crossoverProbability = crossoverProbability;
             this.benchmarkPath = benchmarkPath;
             this.selectionType = selectionType;
@@ -36,11 +36,11 @@ namespace ADSPE
             Problem problem = new Problem(benchmarkPath);
             Dictionary<String, object> parameters;
 
-            Algorithm algorithm = new JMetalCSharp.Metaheuristics.SPEA2.SPEA2(problem);
+            Algorithm algorithm = new JMetalCSharp.Metaheuristics.SMSEMOA.SMSEMOA(problem);
 
             // Set algorithm parameters
             algorithm.SetInputParameter("populationSize", populationSize);
-            algorithm.SetInputParameter("maxEvaluations", offspringSize * populationSize);
+            algorithm.SetInputParameter("maxEvaluations", generationSize * populationSize);
 
             // Mutation and crossover for real codification
             parameters = new Dictionary<string, object>();
@@ -66,8 +66,7 @@ namespace ADSPE
             // Execute the algorithm
             SolutionSet population = algorithm.Execute();
 
-            // Save results to files
-
+            // Save results to their coresponding file
             population.PrintObjectivesToFile("FUN"); // objective values
             population.PrintVariablesToFile("VAR"); // variables values
         }
