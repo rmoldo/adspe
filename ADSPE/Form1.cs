@@ -23,10 +23,11 @@ namespace ADSPE
             int populationSize = Convert.ToInt32(populationTextBox.Text);
             string benchmarkPath = @"Traces/" + benchmarkComboBox.Text;
             int generations = Convert.ToInt32(generationsTextBox.Text);
-            double crossover = Convert.ToDouble(crossoverComboBox.Text);
+            double crossover = Convert.ToDouble(crossoverTextBox.Text);
+            double mutation = Convert.ToDouble(muationTextBox.Text);
             string selectionOperator = selectionComboBox.Text;
 
-            GeneticAlgorithm spea2 = new GeneticAlgorithm(populationSize, generations, crossover, benchmarkPath, selectionOperator);
+            GeneticAlgorithm spea2 = new GeneticAlgorithm(populationSize, generations, crossover, mutation, benchmarkPath, selectionOperator);
             spea2.Start();
 
             MessageBox.Show("Finished running all simulations. Check FUN and VAR files for results");

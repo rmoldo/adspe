@@ -16,16 +16,18 @@ namespace ADSPE
         private int populationSize;
         private int generationSize;
         private double crossoverProbability;
+        private double mutationProbability;
         private String benchmarkPath;
         private String selectionType;
 
-        public GeneticAlgorithm(int populationSize, int generationSize, double crossoverProbability, string benchmarkPath, string selectionType)
+        public GeneticAlgorithm(int populationSize, int generationSize, double crossoverProbability, double mutationProbability, string benchmarkPath, string selectionType)
         {
             this.populationSize = populationSize;
             this.generationSize = generationSize;
             this.crossoverProbability = crossoverProbability;
             this.benchmarkPath = benchmarkPath;
             this.selectionType = selectionType;
+            this.mutationProbability = mutationProbability;
         }
 
         public void Start()
@@ -49,14 +51,13 @@ namespace ADSPE
             crossover = CrossoverFactory.GetCrossoverOperator("SBXCrossover", parameters);
 
             parameters = new Dictionary<string, object>();
-            parameters.Add("probability", 1.0 / problem.NumberOfVariables);
+            parameters.Add("probability", mutationProbability);
             parameters.Add("distributionIndex", 20.0);
             mutation = MutationFactory.GetMutationOperator("PolynomialMutation", parameters);
 
             // Selection operator
             parameters = null;
             selection = SelectionFactory.GetSelectionOperator(selectionType, parameters);
-
 
             // Add the operators to the algorithm
             algorithm.AddOperator("crossover", crossover);
